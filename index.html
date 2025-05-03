@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>대출 상환 계산기</title>
+  <style>
+    body { font-family: 'Arial'; padding: 20px; max-width: 500px; margin: auto; background: #f9f9f9; }
+    h2 { text-align: center; }
+    .section { margin-bottom: 20px; }
+    label { font-weight: bold; display: block; margin-bottom: 5px; }
+    input[type="number"] { width: 100%; padding: 10px; margin-top: 5px; font-size: 16px; }
+    .button-group button {
+      padding: 8px 12px; margin-right: 8px; margin-top: 8px;
+      border: 1px solid #ccc; background: #fff; cursor: pointer;
+    }
+    .button-group button.active {
+      background-color: #1dbf73; color: white; border-color: #1dbf73;
+    }
+    .method-select button {
+      padding: 10px 20px; margin-right: 10px; cursor: pointer;
+      border: 1px solid #ccc; background: #f1f1f1;
+    }
+    .method-select .active {
+      background-color: #1dbf73; color: #fff;
+    }
+    .result { font-size: 18px; margin-top: 20px; background: #fff; padding: 15px; border-radius: 5px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    button#calculate { width: 100%; background: #1dbf73; color: white; padding: 15px; font-size: 16px; border: none; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <h2>대출 상환 계산기</h2>
+
+  <div class="section">
+    <label>대출금액 (원)</label>
+    <input type="number" id="loanAmount" placeholder="예: 100000000" />
+  </div>
+
+  <div class="section">
+    <label>대출기간</label>
+    <input type="number" id="loanYears" placeholder="년 (예: 30)" value="30" readonly disabled/>
+  </div>
+
+  <div class="section">
+    <label>대출금리 (%)</label>
+    <input type="number" id="interestRate" placeholder="예: 4.2" step="0.01" value="4.2" readonly disabled/>
+  </div>
+
+  <div class="section">
+    <label>상환방법</label>
+    <div class="method-select">
+      <button class="active" onclick="selectMethod(this, '원리금균등')">원리금균등</button>
+      <button onclick="selectMethod(this, '원금균등')">원금균등</button>
+      <button onclick="selectMethod(this, '만기일시')">만기일시</button>
+    </div>
+  </div>
+
+  <button id="calculate">계산하기</button>
+
+  <div class="result" id="result"></div>
+
+  <script>
+    let repaymentMethod = '원리금균등';
+
+    function selectMethod(button, method) {
+      document.querySelectorAll('.method-select button').forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+      repaymentMethod = method;
+    }
+
+    function calculate() {
+      const loan = parseFloat(document.getElementById('loanAmount').value);
+      const years = parseInt(document.getElementById('loanYears').value);
+      const rate = parseFloat(document.getElementById('interestRate').value);
+
+      if (!loan || !years || !rate) {
+        alert('모든 항목을 입력해주세요.');
+        return;
+      }
+
+      const months = years * 12;
+      const monthlyRate = rate / 12 / 100;
+      let monthlyPayment = 0, totalPayment = 0, totalInterest = 0;
+
+      if (repaymentMethod === '원리금균등') {
+        monthlyPayment = loan * monthlyRate / (1 - Math.pow(1 + monthlyRate, -months));
+        totalPayment = monthlyPayment * months;
+        totalInterest = totalPayment - loan;
+      } else {
+        // 향후 원금균등, 만기일시 로직 추가 가능
+        alert(`${repaymentMethod} 방식은 현재 지원되지 않습니다.`);
+        return;
+      }
+
+      document.getElementById('result').innerHTML = `
+        📌 <strong>월 상환금액:</strong> ${monthlyPayment.toLocaleString(undefined, {maximumFractionDigits: 0})}원<br>
+        💰 <strong>총 이자:</strong> ${totalInterest.toLocaleString(undefined, {maximumFractionDigits: 0})}원<br>
+        🧾 <strong>총 상환액:</strong> ${totalPayment.toLocaleString(undefined, {maximumFractionDigits: 0})}원
+      `;
+    }
+
+    document.getElementById('calculate').addEventListener('click', calculate);
+  </script>
+
+</body>
+</html>
